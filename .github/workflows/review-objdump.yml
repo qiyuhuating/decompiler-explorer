@@ -1,0 +1,17 @@
+name: Validate decompiler PR 294
+on:
+  push:
+    branches: [review/objdump-regressions-20261021]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run focused no-service regression tests
+        run: |
+          python3 -m unittest discover -s runners/decompiler -p 'test_objdump.py' -v
+          python3 -m py_compile runners/decompiler/decompile_objdump.py
