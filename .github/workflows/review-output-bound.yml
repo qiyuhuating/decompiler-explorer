@@ -1,0 +1,18 @@
+name: Validate decompiler PR 292
+on:
+  push:
+    branches: [review/output-bound-regressions-20261021]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run focused no-service regression tests
+        run: |
+          python3 -m unittest discover -s runners/decompiler -p 'test_output_capture.py' -v
+          python3 -m unittest discover -s runners/decompiler -p 'test_reko_output.py' -v
+          python3 -m unittest discover -s runners/decompiler -p 'test_dockerfile_assets.py' -v
