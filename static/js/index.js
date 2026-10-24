@@ -63,7 +63,6 @@ Object.keys(decompilerSelectChecks).forEach((decompiler) => {
 
 document.querySelector("#binary_upload_form input[name='file']").required = true;
 
-let numDecompilers = Object.keys(decompilerFrames).length;
 let resultUrl;
 
 // For keeping track of line change events-- they will also trigger when we update the contents
@@ -217,7 +216,7 @@ async function fetchArray(url) {
     return results;
 }
 
-function loadResults(is_sample) {
+function loadResults(is_sample, decompilerNames = Object.keys(decompilers)) {
     let finishedResults = [];
     let startTime = Date.now();
 
@@ -226,13 +225,13 @@ function loadResults(is_sample) {
             clearTimeout(timerSchedule);
         }
 
-        for (let decompilerName of Object.keys(decompilers)) {
+        for (let decompilerName of decompilerNames) {
             if (finishedResults.indexOf(decompilerName) === -1) {
                 let elapsedSecs = ((Date.now() - startTime) / 1000).toFixed(0);
                 updateTextEdit(decompilerName, "// Waiting for data... (" + elapsedSecs + "s)");
             }
         }
-        if (finishedResults.length < numDecompilers) {
+        if (finishedResults.length < decompilerNames.length) {
             timerSchedule = setTimeout(timerUpdate, 1000);
         }
     };
@@ -263,7 +262,7 @@ function loadResults(is_sample) {
                     if (i['decompiler'] === null)
                         continue;
                     let decompilerName = i['decompiler']['name'];
-                    if (!finishedResults.includes(decompilerName)) {
+                    if (decompilerNames.includes(decompilerName) && !finishedResults.includes(decompilerName)) {
                         displayResult(i, is_sample);
                         finishedResults.push(decompilerName);
                     }
@@ -273,7 +272,7 @@ function loadResults(is_sample) {
                 console.error(e);
             })
             .finally(() => {
-                if (finishedResults.length < numDecompilers) {
+                if (finishedResults.length < decompilerNames.length) {
                     refreshSchedule = setTimeout(refresh, 5000);
                 }
             })
@@ -352,7 +351,7 @@ function rerunDecompiler(decompiler_name) {
     })
     .then(() => {
         clearOutput(decompiler_name);
-        loadResults(false);
+        loadResults(false, [decompiler_name]);
     })
     .catch(err => {
         logError(err, err, true);
